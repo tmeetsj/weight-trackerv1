@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chic Weight Tracker</title>
+  <style>
+    @import url('https://fonts.cdnfonts.com/css/aptos');
+
+    :root {
+      --bg: #fafafa;
+      --primary: #d4a5a5;
+      --secondary: #f4dada;
+      --accent: #b88e8e;
+      --card: #ffffff;
+      --font: 'Aptos', sans-serif;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: var(--font);
+      background: linear-gradient(to bottom right, var(--primary), var(--secondary));
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tracker {
+      background: var(--card);
+      box-shadow: var(--shadow);
+      border-radius: 1rem;
+      padding: 2rem;
+      width: 90%;
+      max-width: 480px;
+      margin: 2rem auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .summary {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .progress-bar-bg {
+      background: #eee;
+      border-radius: 1rem;
+      height: 1.25rem;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .progress-bar-fill {
+      background: var(--accent);
+      height: 100%;
+      width: 0%;
+      border-radius: 1rem;
+      color: #fff;
+      font-size: 0.85rem;
+      text-align: right;
+      padding-right: 0.5rem;
+      line-height: 1.25rem;
+    }
+
+    form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    input[type="number"], input[type="date"] {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #a07676;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+
+    th, td {
+      padding: 0.5rem;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .delete-btn {
+      background: #e57373;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.4rem;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .export-import {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .export-import input {
+      flex: 1;
+    }
+
+    .export-import button {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="tracker">
+    <h1>Weight Tracker</h1>
+
+    <div class="summary" id="summary">Start: — | Current: — | Goal: —</div>
+
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar">0%</div>
+    </div>
+
+    <form id="weightForm">
+      <input type="number" id="weightInput" placeholder="Weight (lbs)" required />
+      <input type="date" id="dateInput" required />
+      <button type="submit">Add</button>
+    </form>
+
+    <table id="weightTable">
+      <thead>
+        <tr><th>Date</th><th>Weight</th><th>Delete</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <canvas id="weightChart" height="150"></canvas>
+
+    <div class="export-import">
+      <button onclick="exportData()">Export</button>
+      <input type="file" id="importFile" accept=".json" onchange="importData(event)" />
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const weightData = JSON.parse(localStorage.getItem('weights') || '[]');
+    const startWeight = weightData[0]?.weight || null;
+    const goalWeight = 150;
+
+    const summaryEl = document.getElementById('summary');
+    const progressBar = document.getElementById('progressBar');
+    const tableBody = document.querySelector('#weightTable tbody');
+    const ctx = document.getElementById('weightChart').getContext('2d');
+
+    let chart;
+
+    function updateSummary() {
+      const current = weightData.at(-1)?.weight ?? '—';
+      const start = startWeight ?? '—';
+      summaryEl.textContent = `Start: ${start} | Current: ${current} | Goal: ${goalWeight}`;
+    }
+
+    function updateProgressBar() {
+      const current = weightData.at(-1)?.weight ?? startWeight;
+      if (startWeight && current) {
+        const lost = startWeight - current;
+        const total = startWeight - goalWeight;
+        const percent = Math.max(0, Math.min(100, (lost / total) * 100)).toFixed(1);
+        progressBar.style.width = percent + '%';
+        progressBar.textContent = percent + '%';
+      } else {
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+      }
+    }
+
+    function updateTable() {
+      tableBody.innerHTML = '';
+      weightData.forEach((entry, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.date}</td>
+          <td>${entry.weight}</td>
+          <td><button class="delete-btn" onclick="deleteEntry(${i})">X</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateChart() {
+      const labels = weightData.map(entry => entry.date);
+      const data = weightData.map(entry => entry.weight);
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Weight',
+            data,
+            borderColor: '#b88e8e',
+            backgroundColor: '#f4dada',
+            fill: false,
+            tension: 0.2
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: false }
+          }
+        }
+      });
+    }
+
+    function saveData() {
+      localStorage.setItem('weights', JSON.stringify(weightData));
+    }
+
+    function deleteEntry(index) {
+      weightData.splice(index, 1);
+      saveData();
+      updateUI();
+    }
+
+    function updateUI() {
+      updateSummary();
+      updateProgressBar();
+      updateTable();
+      updateChart();
+    }
+
+    document.getElementById('weightForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const weight = parseFloat(document.getElementById('weightInput').value);
+      const date = document.getElementById('dateInput').value;
+      if (!isNaN(weight) && date) {
+        weightData.push({ date, weight });
+        saveData();
+        updateUI();
+        e.target.reset();
+      }
+    });
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(weightData)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'weight_data.json';
+      a.click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const data = JSON.parse(e.target.result);
+        if (Array.isArray(data)) {
+          localStorage.setItem('weights', JSON.stringify(data));
+          location.reload();
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
