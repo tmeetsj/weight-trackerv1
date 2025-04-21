@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Snazzy Weight Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&display=swap" rel="stylesheet">
   <style>
@@ -65,6 +65,12 @@
       font-weight: 700;
       z-index: 2;
       position: relative;
+    }
+    .content {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #333;
+      margin-top: 20px;
     }
     .settings-card {
       background: #f7fafc;
@@ -144,7 +150,7 @@
     .progress-bar-fill {
       height: 100%;
       background: var(--gradient);
-      width: 0;
+      width: 50%; /* Change this value to match progress */
       border-radius: 1rem 0 0 1rem;
       font-weight: 700;
       color: #fff;
@@ -154,16 +160,6 @@
       transition: width 0.7s cubic-bezier(.22,2.2,.36,.97);
       font-size: 1rem;
       box-sizing: border-box;
-    }
-    .progress-details {
-      font-size: 0.99rem;
-      color: #4a6b7b;
-      margin-top: 0.12rem;
-      font-weight: 500;
-      display: flex;
-      justify-content: space-between;
-      margin-left: 0.1rem;
-      margin-right: 0.1rem;
     }
     form#weightForm {
       display: flex;
@@ -246,6 +242,25 @@
       position: relative;
       text-shadow: 0 1px 2px #ffb34718;
     }
-    .startdetails {
-      font-size: 1.04em;
-      color: #4a6b7b;
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Snazzy Weight Tracker</h1>
+    <div class="content">
+      <p>Welcome to the Snazzy Weight Tracker! Track your progress, set goals, and stay motivated.</p>
+      <form id="weightForm">
+        <input type="number" id="weightInput" placeholder="Enter Weight (kg)" required />
+        <input type="date" id="dateInput" required />
+        <button type="submit">Save Data</button>
+      </form>
+      <div class="progress-section">
+        <p class="progress-label">Progress towards goal:</p>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill">50%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
