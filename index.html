@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Snazzy Weight Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Existing styles... */
+    .upload-section, .download-section {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .upload-section input, .download-section a {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #d2e6e9;
+    }
+    .download-section a {
+      display: inline-block;
+      background: #43cea2;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 7px;
+      font-weight: 700;
+      margin-top: 1rem;
+    }
+    .download-section a:hover {
+      background: #185a9d;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Snazzy Weight Tracker</h1>
+
+    <!-- Form to input weight and date -->
+    <form id="weightForm">
+      <input type="number" id="weightInput" placeholder="Weight (lbs)" required>
+      <input type="date" id="dateInput" required>
+      <button type="submit">Save</button>
+    </form>
+
+    <!-- Display weight history table -->
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Weight (lbs)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Line chart container -->
+    <div class="progress-section">
+      <canvas id="weightChart"></canvas>
+    </div>
+
+    <!-- File upload section -->
+    <div class="upload-section">
+      <h3>Upload a File</h3>
+      <input type="file" id="fileInput" accept="application/json" />
+    </div>
+
+    <!-- File download section -->
+    <div class="download-section">
+      <h3>Download Weight Data</h3>
+      <a href="#" id="downloadLink" download="weightData.json" style="display: none;">Download File</a>
+    </div>
+  </div>
+
+  <script>
+    // Initialize weight history from localStorage or empty array
+    let weightHistory = JSON.parse(localStorage.getItem('weightHistory')) || [];
+
+    // Function to save weight data to localStorage
+    function saveWeightData(weight, date) {
+      const newEntry = { weight, date };
+      weightHistory.push(newEntry);
+      localStorage.setItem('weightHistory', JSON.stringify(weightHistory));
+      renderHistory();
+      updateChart();
+    }
+
+    // Function to render weight history table
+    function renderHistory() {
+      const tableBody = document.querySelector("#historyTable tbody");
+      tableBody.innerHTML = "";
+      weightHistory.forEach(entry => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${entry.date}</td><td>${entry.weight}</td>`;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Function to update the line chart
+    function updateChart() {
+      const dates = weightHistory.map(entry => entry.date);
+      const weights = weightHistory.map(entry => entry.weight);
+
+      const ctx = document.getElementById('weightChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [{
+            label: 'Weight Progress (lbs)',
+            data: weights,
+            borderColor: '#43cea2',
+            backgroundColor: 'rgba(67, 206, 162, 0.2)',
+            fill: true,
+            tension: 0.4,
+          }],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Weight (lbs)',
+              },
+              min: Math.min(...weights) - 10,
+              max: Math.max(...weights) + 10,
+            }
+          },
+        },
+      });
+    }
+
+    // Event listener for form submission
+    document.getElementById('weightForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const weight = parseFloat(document.getElementById('weightInput').value);
+      const date = document.getElementById('dateInput').value;
+      if (weight && date) {
+        saveWeightData(weight, date);
+        document.getElementById('weightForm').reset();
+      }
+    });
+
+    // Function to handle file upload
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const uploadedData = JSON.parse(event.target.result);
+            if (Array.isArray(uploadedData)) {
+              weightHistory = uploadedData;
+              localStorage.setItem('weightHistory', JSON.stringify(weightHistory));
+              renderHistory();
+              updateChart();
+            } else {
+              alert("The uploaded file is not in the correct format.");
+            }
+          } catch (error) {
+            alert("Error reading the file: " + error);
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Function to create a downloadable JSON file from weight history
+    function createDownloadLink() {
+      const fileData = JSON.stringify(weightHistory, null, 2);
+      const blob = new Blob([fileData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.getElementById('downloadLink');
+      downloadLink.href = url;
+      downloadLink.style.display = 'inline-block'; // Show the download link
+    }
+
+    // Call the createDownloadLink function every time the history changes
+    window.addEventListener('storage', function() {
+      createDownloadLink();
+    });
+
+    // Initial render of history, chart, and create download link
+    renderHistory();
+    updateChart();
+    createDownloadLink();
+  </script>
+
+</body>
+</html>
