@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>75 Hard Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&family=Pacifico&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', Arial, sans-serif;
+      margin: 16px;
+      background: linear-gradient(120deg, #ffe2f7 0%, #e0e7ff 100%);
+    }
+    h1 {
+      font-family: 'Pacifico', cursive;
+      color: #d156b3;
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+      font-size: 2.1em;
+      text-shadow: 0 2px 8px #fff5;
+    }
+    .tracker-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff6fa;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 6px 28px #e0b3da55;
+      margin: 0 auto;
+      font-size: 1em;
+    }
+    .tracker-table th, .tracker-table td {
+      border: 1.5px solid #e7b6d6;
+      text-align: center;
+      padding: 9px 0;
+      width: 41px;
+      height: 41px;
+      font-size: 1em;
+      background: #fff;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .tracker-table thead th {
+      background: #f3e9fc;
+      padding: 12px 0 9px 0;
+      border-bottom: 2.5px solid #e7b6d6;
+    }
+    .icon {
+      width: 30px;
+      height: 30px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .day-num {
+      font-weight: bold;
+      width: 42px;
+      background: linear-gradient(90deg, #fdb7d6 30%, #ccd6f6 100%);
+      color: #8c3b7e;
+      border-left: 3px solid #e7b6d6;
+      font-size: 1.08em;
+      letter-spacing: 1px;
+      border-radius: 10px 0 0 10px;
+    }
+    .tracker-table td {
+      border-radius: 0 0 0 0;
+    }
+    .tracker-table tbody tr:nth-child(even) td {
+      background: #f9eaf3;
+    }
+    .tracker-table tbody tr:hover td {
+      background: #ffe9f9;
+    }
+    /* Checkbox style */
+    .pretty-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #e7b6d6;
+      border-radius: 8px;
+      background: #ffe2f7;
+      cursor: pointer;
+      outline: none;
+      transition: box-shadow 0.18s, border 0.18s;
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0;
+      position: relative;
+    }
+    .pretty-checkbox:checked {
+      background: linear-gradient(120deg, #f9a8d4 70%, #a5b4fc 100%);
+      border-color: #d156b3;
+      box-shadow: 0 0 0 2px #e7b6d666;
+    }
+    .pretty-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 7px;
+      height: 13px;
+      border: solid #8c3b7e;
+      border-width: 0 3px 3px 0;
+      border-radius: 2px;
+      transform: rotate(45deg);
+    }
+    @media (max-width: 900px) {
+      .tracker-table th, .tracker-table td {
+        padding: 2px;
+        width: 24px;
+        height: 24px;
+        font-size: 0.92em;
+      }
+      .icon {
+        width: 18px;
+        height: 18px;
+      }
+      .day-num {
+        width: 20px;
+        font-size: 11px;
+      }
+      .pretty-checkbox {
+        width: 15px;
+        height: 15px;
+      }
+      .pretty-checkbox:checked::after {
+        left: 3px;
+        top: 1px;
+        width: 5px;
+        height: 8px;
+        border-width: 0 2px 2px 0;
+      }
+    }
+    /* Scrollable for large tables on small screens */
+    .table-wrapper {
+      overflow-x: auto;
+      background: #fff0;
+      border-radius: 18px;
+      box-shadow: 0 2px 10px #e0b3da22;
+      padding-bottom: 8px;
+    }
+    /* Reset & info */
+    .actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .reset-btn {
+      background: linear-gradient(90deg, #fdb7d6, #a5b4fc 90%);
+      color: #8c3b7e;
+      font-family: 'Quicksand', Arial, sans-serif;
+      font-weight: bold;
+      padding: 8px 22px;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.05em;
+      box-shadow: 1px 2px 8px #e7b6d666;
+      cursor: pointer;
+      margin: 0 4px;
+      transition: background 0.18s, color 0.18s;
+    }
+    .reset-btn:hover {
+      background: linear-gradient(90deg, #a5b4fc, #fdb7d6 90%);
+      color: #d156b3;
+    }
+    .info-text {
+      margin-top: 10px;
+      color: #d156b3;
+      font-size: 15px;
+      font-family: 'Quicksand', Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>75 Hard Tracker</h1>
+  <div class="table-wrapper">
+    <table class="tracker-table" id="tracker-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th title="Workout 1: Dumbbell">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="10" width="2" height="4" fill="#d156b3"/><rect x="4" y="9" width="2" height="6" fill="#fdb7d6"/><rect x="6" y="11" width="2" height="2" fill="#ffe2f7"/><rect x="8" y="11" width="8" height="2" fill="#d156b3"/><rect x="16" y="11" width="2" height="2" fill="#ffe2f7"/><rect x="18" y="9" width="2" height="6" fill="#fdb7d6"/><rect x="20" y="10" width="2" height="4" fill="#d156b3"/></svg>
+            </span>
+          </th>
+          <th title="Workout 2: Running Shoe">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><path d="M3 17c0-2 2-4 7-4h6c2 0 3 1 3 3v2H3v-1z" fill="#f9a8d4"/><path d="M20 18v-2c0-1-1-2-3-2H10c-5 0-7 2-7 4v1h17z" fill="#a5b4fc"/><rect x="5" y="16" width="2" height="2" fill="#d156b3"/><rect x="8" y="16" width="2" height="2" fill="#d156b3"/></svg>
+            </span>
+          </th>
+          <th title="1 Gallon Water: Water Bottle">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><rect x="10" y="3" width="4" height="4" rx="1" fill="#a5b4fc"/><rect x="9" y="7" width="6" height="14" rx="2" fill="#bae6fd"/><rect x="11" y="1" width="2" height="2" fill="#38bdf8"/></svg>
+            </span>
+          </th>
+          <th title="Followed Diet: Plate & Fork">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#fffde7" stroke="#fbc2eb" stroke-width="1.5"/><rect x="18" y="7" width="1" height="10" rx="0.5" fill="#fbc2eb"/><rect x="19.5" y="7" width="0.5" height="10" rx="0.25" fill="#d156b3"/><rect x="4.5" y="7" width="1" height="10" rx="0.5" fill="#fbc2eb"/></svg>
+            </span>
+          </th>
+          <th title="No Cheat Meals: Prohibition">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#f87171" stroke-width="2"/><line x1="6.5" y1="17.5" x2="17.5" y2="6.5" stroke="#f87171" stroke-width="2"/></svg>
+            </span>
+          </th>
+          <th title="Progress Photo: Camera">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="11" rx="2" fill="#e0e7ff"/><circle cx="12" cy="13" r="3" fill="#fff"/><rect x="9" y="4" width="6" height="3" rx="1" fill="#d1c4e9"/></svg>
+            </span>
+          </th>
+          <th title="Read 10 Pages: Book">
+            <span class="icon">
+              <svg viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h7v16H5a2 2 0 0 1-2-2V6z" fill="#ffe2f7" stroke="#eabfff" stroke-width="1"/><path d="M21 6a2 2 0 0 0-2-2h-7v16h7a2 2 0 0 0 2-2V6z" fill="#fbc2eb" stroke="#eabfff" stroke-width="1"/></svg>
+            </span>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tracker-body">
+        <!-- Rows will be generated by JavaScript for all 75 days -->
+      </tbody>
+    </table>
+  </div>
+  <div class="actions">
+    <button class="reset-btn" onclick="resetTracker()">Reset All</button>
+    <div class="info-text">
+      <em>Your progress saves automatically in your browser.<br>
+      Print or screenshot if you want a keepsake!<br>
+      You're stronger than you think!</em>
+    </div>
+  </div>
+  <script>
+    // Number of days and habits
+    const DAYS = 75;
+    const HABITS = 7;
+    // Keys for localStorage
+    const STORAGE_KEY = "seventyFiveHardTrackerV2";
+    // For accessibility, habit names (in order of columns)
+    const habitNames = [
+      "Workout 1",
+      "Workout 2",
+      "1 Gallon Water",
+      "Followed Diet",
+      "No Cheat Meals",
+      "Progress Photo",
+      "Read 10 Pages"
+    ];
+
+    // Generate the table
+    function createTable() {
+      const tbody = document.getElementById('tracker-body');
+      let saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch { saved = null; }
+      if (!Array.isArray(saved) || saved.length !== DAYS) {
+        saved = Array.from({length: DAYS}, () => Array(HABITS).fill(false));
+      }
+
+      for (let day = 0; day < DAYS; day++) {
+        const tr = document.createElement('tr');
+        // Day number
+        const tdDay = document.createElement('td');
+        tdDay.className = "day-num";
+        tdDay.textContent = day + 1;
+        tr.appendChild(tdDay);
+
+        // Habit checkboxes
+        for (let habit = 0; habit < HABITS; habit++) {
+          const td = document.createElement('td');
+          const id = `cb-${day}-${habit}`;
+          const checkbox = document.createElement('input');
+          checkbox.type = "checkbox";
+          checkbox.className = "pretty-checkbox";
+          checkbox.id = id;
+          checkbox.setAttribute("aria-label", `Day ${day+1} - ${habitNames[habit]}`);
+          if (saved[day][habit]) checkbox.checked = true;
+
+          // Save on change
+          checkbox.addEventListener('change', function() {
+            saved[day][habit] = checkbox.checked;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+          });
+
+          td.appendChild(checkbox);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Reset function
+    function resetTracker() {
+      if (!confirm("Are you sure you want to reset your tracker? This cannot be undone!")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      // Uncheck all checkboxes
+      const tbody = document.getElementById('tracker-body');
+      tbody.innerHTML = '';
+      createTable();
+    }
+
+    // On load
+    createTable();
+  </script>
+</body>
+</html>
